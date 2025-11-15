@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "login_attempt", indexes = {
+@Table(name = "login_attempts", indexes = {
     @Index(name = "idx_identifier", columnList = "identifier"),
     @Index(name = "idx_attempt_time", columnList = "attempt_time")
 })
