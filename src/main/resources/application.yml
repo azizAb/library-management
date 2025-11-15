@@ -1,0 +1,76 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/library_db
+    username: postgres
+    password: postgres
+  
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect : org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  
+  mail:
+    # Using MailHog for local testing (no real email needed)
+    host: localhost
+    port: 1025
+    username: 
+    password: 
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+            required: false
+
+server:
+  port: 8080
+
+# JWT Configuration
+jwt:
+  secret: LocalDevSecretKeyForJWTTokenGenerationMustBeLongEnoughForSecurity
+  expiration: 86400000 # 24 hours
+
+# Security Configuration
+security:
+  otp:
+    expiration: 600 # 10 minutes for easier testing
+    length: 6
+  login:
+    max-attempts: 5
+    lock-duration: 300 # 5 minutes for easier testing
+    attempt-window: 600
+  rate-limit:
+    enabled: true
+    requests-per-minute: 100 # More lenient for testing
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.aziz.library: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Application
+app:
+  name: Library Management System
+  base-url: http://localhost:8080
+  frontend-url: http://localhost:3000
