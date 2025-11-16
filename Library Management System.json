@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "cbb5e3d9-b03c-4d58-baed-1135e1492e85",
+		"_postman_id": "a43340df-a1c6-4b96-ad00-e67d0bbce739",
 		"name": "Library Management System",
 		"description": "Complete API collection for Library Management System with JWT Authentication, MFA, and RBAC",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
@@ -604,6 +604,61 @@
 				}
 			],
 			"description": "Health check and monitoring endpoints"
+		},
+		{
+			"name": "Bubble Sort",
+			"item": [
+				{
+					"name": "Sort Array",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"array\": [64, 34, 25, 12, 22, 11, 90],\n    \"order\": \"ASC\"\n}"
+						},
+						"url": "{{base_url}}/api/bubble-sort",
+						"description": "Mengurutkan array menggunakan algoritma Bubble Sort. Mendukung order ASC (ascending) dan DESC (descending)."
+					},
+					"response": []
+				},
+				{
+					"name": "Sort Array - Descending",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"array\": [64, 34, 25, 12, 22, 11, 90],\n    \"order\": \"DESC\"\n}"
+						},
+						"url": "{{base_url}}/api/bubble-sort",
+						"description": "Mengurutkan array secara descending (dari besar ke kecil)."
+					},
+					"response": []
+				},
+				{
+					"name": "Demo Sort",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/bubble-sort/demo",
+						"description": "Demonstrasi bubble sort dengan sample array [5, 2, 8, 1, 9, 3]. Tidak memerlukan autentikasi."
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"event": [
