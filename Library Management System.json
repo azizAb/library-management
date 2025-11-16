@@ -1,0 +1,657 @@
+{
+	"info": {
+		"_postman_id": "cbb5e3d9-b03c-4d58-baed-1135e1492e85",
+		"name": "Library Management System",
+		"description": "Complete API collection for Library Management System with JWT Authentication, MFA, and RBAC",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "2223122"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register New User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set('user_id', jsonData.data.id);",
+									"        pm.environment.set('username', jsonData.data.username);",
+									"    }",
+									"    pm.test('User registered successfully', function() {",
+									"        pm.expect(jsonData.status).to.eql('success');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullname\": \"Abdul Aziz\",\n  \"username\": \"abdulaziz\",\n  \"email\": \"abdul.aziz@example.com\",\n  \"password\": \"Password123!\"\n}"
+						},
+						"url": "{{base_url}}/api/auth/register",
+						"description": "Register a new user with VIEWER role (default)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login (Get OTP)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.userId) {",
+									"        pm.environment.set('user_id', jsonData.data.userId);",
+									"    }",
+									"    pm.test('OTP required', function() {",
+									"        pm.expect(jsonData.data.otpRequired).to.eql(true);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"identifier\": \"abdulaziz\",\n  \"password\": \"Password123!\"\n}"
+						},
+						"url": "{{base_url}}/api/auth/login",
+						"description": "Login with username/email and password. OTP will be sent to email (check MailHog at http://localhost:8025)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin (Get OTP)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.userId) {",
+									"        pm.environment.set('user_id', jsonData.data.userId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"identifier\": \"admin\",\n  \"password\": \"Admin123!\"\n}"
+						},
+						"url": "{{base_url}}/api/auth/login",
+						"description": "Login as admin (SUPER_ADMIN role)"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.accessToken) {",
+									"        pm.environment.set('jwt_token', jsonData.data.accessToken);",
+									"    }",
+									"    pm.test('JWT token received', function() {",
+									"        pm.expect(jsonData.data.accessToken).to.be.a('string');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": {{user_id}},\n  \"otpCode\": \"123456\"\n}"
+						},
+						"url": "{{base_url}}/api/auth/verify-otp",
+						"description": "Verify OTP code from email and get JWT token. Check MailHog (http://localhost:8025) for OTP code."
+					},
+					"response": []
+				},
+				{
+					"name": "Resend OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "{{base_url}}/api/auth/resend-otp/{{user_id}}",
+						"description": "Resend OTP code to user's email"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints - Register, Login, OTP verification"
+		},
+		{
+			"name": "Articles",
+			"item": [
+				{
+					"name": "Create Article",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set('article_id', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Title for new article\",\n  \"content\": \"this is the content of article\",\n  \"public\": true\n}"
+						},
+						"url": "{{base_url}}/api/articles",
+						"description": "Create new article (requires CONTRIBUTOR, EDITOR, or SUPER_ADMIN role)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Articles",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/articles",
+						"description": "Get all articles based on user role permissions"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Article by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/articles/{{article_id}}",
+						"description": "Get specific article by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Articles",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/articles/my-articles",
+						"description": "Get all articles created by current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Article",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"by aziz editor\",\n  \"content\": \"is the content of article Updated by aziz\",\n  \"public\": true\n}"
+						},
+						"url": "{{base_url}}/api/articles/{{article_id}}",
+						"description": "Update existing article (owner or SUPER_ADMIN)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Article",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "{{base_url}}/api/articles/{{article_id}}",
+						"description": "Delete article (EDITOR can delete own, SUPER_ADMIN can delete any)"
+					},
+					"response": []
+				}
+			],
+			"description": "Article CRUD operations with RBAC"
+		},
+		{
+			"name": "Users (SUPER_ADMIN only)",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/users",
+						"description": "Get all users (SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/users/{{user_id}}",
+						"description": "Get specific user by ID (SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullname\": \"Nadia\",\n  \"username\": \"nadia\",\n  \"email\": \"nadia@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"CONTRIBUTOR\"\n}"
+						},
+						"url": "{{base_url}}/api/users",
+						"description": "Create new user with specific role (SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullname\": \"Abdul Aziz Updated\",\n  \"username\": \"abdulaziz\",\n  \"email\": \"abdul.aziz@example.com\",\n  \"role\": \"CONTRIBUTOR\"\n}"
+						},
+						"url": "{{base_url}}/api/users/{{user_id}}",
+						"description": "Update user information (SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Role",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/role?role=EDITOR",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}",
+								"role"
+							],
+							"query": [
+								{
+									"key": "role",
+									"value": "EDITOR",
+									"description": "Available: VIEWER, CONTRIBUTOR, EDITOR, SUPER_ADMIN"
+								}
+							]
+						},
+						"description": "Update user role (SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "{{base_url}}/api/users/{{user_id}}",
+						"description": "Delete user (SUPER_ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "User management endpoints (SUPER_ADMIN only)"
+		},
+		{
+			"name": "Audit Logs (SUPER_ADMIN only)",
+			"item": [
+				{
+					"name": "Get All Audit Logs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/audit-logs",
+						"description": "Get all audit logs (SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logs by User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/audit-logs/user/{{user_id}}",
+						"description": "Get audit logs for specific user (SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logs by Date Range",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/audit-logs/date-range?start=2025-01-01T00:00:00&end=2026-12-31T23:59:55",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"audit-logs",
+								"date-range"
+							],
+							"query": [
+								{
+									"key": "start",
+									"value": "2025-01-01T00:00:00"
+								},
+								{
+									"key": "end",
+									"value": "2026-12-31T23:59:55"
+								}
+							]
+						},
+						"description": "Get audit logs within date range (SUPER_ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Audit log endpoints (SUPER_ADMIN only)"
+		},
+		{
+			"name": "Bubble Sort (Public)",
+			"item": [
+				{
+					"name": "Sort Array (ASC)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"array\": [5, 2, 8, 1, 9, 3, 7, 4, 6],\n  \"order\": \"ASC\"\n}"
+						},
+						"url": "{{base_url}}/api/bubble-sort",
+						"description": "Sort array in ascending order using Bubble Sort algorithm (no auth required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Sort Array (DESC)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"array\": [5, 2, 8, 1, 9, 3, 7, 4, 6],\n  \"order\": \"DESC\"\n}"
+						},
+						"url": "{{base_url}}/api/bubble-sort",
+						"description": "Sort array in descending order (no auth required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Demo Sort",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/api/bubble-sort/demo",
+						"description": "Demo bubble sort with sample array (no auth required)"
+					},
+					"response": []
+				}
+			],
+			"description": "Bubble Sort algorithm endpoints (public access)"
+		},
+		{
+			"name": "Health & Info",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/actuator/health",
+						"description": "Check application health status"
+					},
+					"response": []
+				},
+				{
+					"name": "Application Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/actuator/info",
+						"description": "Get application information"
+					},
+					"response": []
+				}
+			],
+			"description": "Health check and monitoring endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "jwt_token",
+			"value": ""
+		},
+		{
+			"key": "admin_token",
+			"value": ""
+		},
+		{
+			"key": "user_id",
+			"value": ""
+		},
+		{
+			"key": "admin_user_id",
+			"value": "1"
+		},
+		{
+			"key": "article_id",
+			"value": ""
+		}
+	]
+}
