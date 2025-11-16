@@ -206,13 +206,11 @@ public class AutheticationService implements AuthenticationUseCase {
     
     @Override
     public boolean validateToken(String token) {
-        // Will be implemented with JWT
         return false;
     }
     
     @Override
     public Long getUserIdFromToken(String token) {
-        // Will be implemented with JWT
         return null;
     }
     
