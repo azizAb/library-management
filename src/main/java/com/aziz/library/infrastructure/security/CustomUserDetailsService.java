@@ -22,9 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService{
     private final UserRepositoryPort userRepository;
     
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsernameOrEmail(username, username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        User user = userRepository.findByUsernameOrEmail(identifier)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
         
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
@@ -37,9 +37,9 @@ public class CustomUserDetailsService implements UserDetailsService{
                 .build();
     }
     
-    public Long getUserIdByUsername(String username) {
-        User user = userRepository.findByUsernameOrEmail(username, username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    public Long getUserIdByUsername(String identifier) {
+        User user = userRepository.findByUsernameOrEmail(identifier)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
         return user.getId();
     }
     

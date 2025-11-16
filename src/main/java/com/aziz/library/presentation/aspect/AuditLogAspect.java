@@ -11,7 +11,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.aziz.library.domain.port.in.AuditLogUseCase;
 import com.aziz.library.infrastructure.security.CustomUserDetailsService;
-import com.aziz.library.infrastructure.security.DeviceInfoExtractor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,6 @@ public class AuditLogAspect {
 
     private final AuditLogUseCase auditLogUseCase;
     private final CustomUserDetailsService userDetailsService;
-    private final DeviceInfoExtractor deviceInfoExtractor;
     
     @AfterReturning(
         pointcut = "execution(* com.aziz.library.presentation.controller.ArticleController.createArticle(..))",
@@ -33,6 +31,24 @@ public class AuditLogAspect {
     )
     public void logCreateArticle(JoinPoint joinPoint, Object result) {
         logAction("CREATE_ARTICLE", "ARTICLE", "Article created");
+    }
+
+    @AfterReturning(
+        pointcut = "execution(* com.aziz.library.presentation.controller.ArticleController.getAllArticles(..))",
+        returning = "result"
+    )
+    public void logGetAllArticle(JoinPoint joinPoint, Object result) {
+        logAction("GET_ALL_ARTICLE", "ARTICLE", "Article Retrieve");
+    }
+
+    @AfterReturning(
+        pointcut = "execution(* com.aziz.library.presentation.controller.ArticleController.getArticleById(..))",
+        returning = "result"
+    )
+    public void logGetArticle(JoinPoint joinPoint, Object result) {
+        Object[] args = joinPoint.getArgs();
+        Long articleId = (Long) args[0];
+        logAction("GET_ARTICLE", "ARTICLE", "Article Retrieve: " + articleId);
     }
     
     @AfterReturning(
@@ -135,7 +151,20 @@ public class AuditLogAspect {
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
             return xForwardedFor.split(",")[0].trim();
         }
-        return request.getRemoteAddr();
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty()) {
+            return xRealIp;
+        }
+        
+        String remoteAddr = request.getRemoteAddr();
+        
+        // Convert IPv6 localhost to IPv4
+        if ("0:0:0:0:0:0:0:1".equals(remoteAddr) || "::1".equals(remoteAddr)) {
+            return "127.0.0.1";
+        }
+        
+        return remoteAddr;
     }
 
 }

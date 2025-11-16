@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.aziz.library.domain.model.LoginAttempt;
 import com.aziz.library.domain.port.out.LoginAttemptRepositoryPort;
@@ -20,6 +22,7 @@ public class LoginAttemptRepositoryAdapter implements LoginAttemptRepositoryPort
     private final LoginAttemptRepository loginAttemptRepository;
     
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public LoginAttempt save(LoginAttempt loginAttempt) {
         LoginAttemptEntity entity = toEntity(loginAttempt);
         LoginAttemptEntity saved = loginAttemptRepository.save(entity);

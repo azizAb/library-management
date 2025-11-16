@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.aziz.library.infrastructure.adapter.persistence.entity.LoginAttemptEntity;
@@ -15,7 +16,8 @@ public interface LoginAttemptRepository extends JpaRepository<LoginAttemptEntity
     
     @Query("SELECT COUNT(l) FROM LoginAttemptEntity l WHERE l.identifier = :identifier " +
            "AND l.successful = false AND l.attemptTime > :after")
-    int countFailedAttempts(String identifier, LocalDateTime after);
+    int countFailedAttempts(@Param("identifier") String identifier, 
+                            @Param("after") LocalDateTime after);
     
     void deleteByAttemptTimeBefore(LocalDateTime before);
 }

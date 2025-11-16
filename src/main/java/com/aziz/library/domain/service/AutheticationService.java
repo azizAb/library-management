@@ -98,7 +98,7 @@ public class AutheticationService implements AuthenticationUseCase {
         }
         
         // Find user
-        User user = userRepository.findByUsernameOrEmail(identifier, identifier)
+        User user = userRepository.findByUsernameOrEmail(identifier)
                 .orElseThrow(() -> {
                     recordLoginAttempt(identifier, ipAddress, false);
                     return new UnauthorizedException("Invalid credentials");
@@ -176,8 +176,8 @@ public class AutheticationService implements AuthenticationUseCase {
         otpRepository.save(otpToken);
         
         // Generate JWT token (will be implemented in JwtTokenProvider)
-        log.info("OTP verified successfully for user: {}", userId);
-        return "JWT_TOKEN_PLACEHOLDER:" + userId + ":" + user.getRole();
+        log.info("OTP verified successfully for user: {}", user.getUsername());
+        return "JWT_TOKEN_PLACEHOLDER:" + user.getUsername() + ":" + user.getRole();
     }
     
     @Override

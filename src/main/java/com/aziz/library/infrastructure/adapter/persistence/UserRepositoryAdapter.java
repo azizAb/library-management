@@ -42,8 +42,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
     
     @Override
-    public Optional<User> findByUsernameOrEmail(String username, String email) {
-        return userRepository.findByUsernameOrEmail(username, email).map(this::toDomain);
+    public Optional<User> findByUsernameOrEmail(String identifier) {
+        return userRepository.findByUsernameOrEmail(identifier, identifier).map(this::toDomain);
     }
     
     @Override

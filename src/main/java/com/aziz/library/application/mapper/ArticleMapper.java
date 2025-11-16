@@ -17,12 +17,14 @@ public abstract class ArticleMapper {
     protected UserRepositoryPort userRepository;
     
     @Mapping(target = "authorUsername", expression = "java(getAuthorUsername(article.getAuthorId()))")
+    @Mapping(target = "isPublic", source = "public")
     public abstract ArticleResponse toResponse(Article article);
     
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "authorId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "isPublic", source = "public")
     public abstract Article toDomain(ArticleRequest request);
     
     @Mapping(target = "id", ignore = true)

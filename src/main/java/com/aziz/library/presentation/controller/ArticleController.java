@@ -41,7 +41,7 @@ public class ArticleController {
         
         Long currentUserId = getCurrentUserId(authentication);
         log.info("Create article request by user: {}", currentUserId);
-        
+
         Article article = articleMapper.toDomain(request);
         Article createdArticle = articleUseCase.createArticle(article, currentUserId);
         ArticleResponse response = articleMapper.toResponse(createdArticle);

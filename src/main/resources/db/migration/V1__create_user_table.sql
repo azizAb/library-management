@@ -19,5 +19,5 @@ CREATE INDEX idx_users_role ON users(role);
 -- Insert default super admin (password: Admin123!)
 INSERT INTO users (fullname, username, email, password, role, enabled, account_locked)
 VALUES ('Super Administrator', 'admin', 'admin@library.com', 
-        '$2a$10$rJK7i1hx.xN5VVqQGxXqceF3fXZ8YhKQw3zfZz9vZw.2rTFXf7Yki', 
+        '$2a$10$oy.rKJT/Rv0XTqKWBNdM/Oyz65E5lDCXoiu9jKAIwmB08bdX1Xu3u', 
         'SUPER_ADMIN', TRUE, FALSE);

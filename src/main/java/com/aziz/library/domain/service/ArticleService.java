@@ -1,7 +1,11 @@
 package com.aziz.library.domain.service;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -13,7 +17,10 @@ import com.aziz.library.domain.model.Role;
 import com.aziz.library.domain.model.User;
 import com.aziz.library.domain.port.in.ArticleUseCase;
 import com.aziz.library.domain.port.out.ArticleRepositoryPort;
+import com.aziz.library.domain.port.out.CacheServicePort;
 import com.aziz.library.domain.port.out.UserRepositoryPort;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +33,10 @@ public class ArticleService implements ArticleUseCase {
 
     private final ArticleRepositoryPort articleRepository;
     private final UserRepositoryPort userRepository;
+    private final CacheServicePort cacheService;
+
+    private static final String ARTICLE_CACHE_PREFIX = "article";
+    private static final long CACHE_TTL = 3600;
     
     @Override
     @Transactional
@@ -84,6 +95,10 @@ public class ArticleService implements ArticleUseCase {
         existingArticle.setUpdatedAt(LocalDateTime.now());
         
         Article updatedArticle = articleRepository.save(existingArticle);
+
+        String cacheKey = ARTICLE_CACHE_PREFIX + id;
+        cacheService.set(cacheKey, updatedArticle, CACHE_TTL);
+
         log.info("Article updated: {}", id);
         
         return updatedArticle;
@@ -115,35 +130,51 @@ public class ArticleService implements ArticleUseCase {
         }
         
         articleRepository.deleteById(id);
+
+        String cacheKey = ARTICLE_CACHE_PREFIX + id;
+        cacheService.delete(cacheKey);
+
         log.info("Article deleted: {}", id);
     }
     
     @Override
     public Article getArticleById(Long id, Long currentUserId) {
         log.debug("Getting article {} for user: {}", id, currentUserId);
+
+        String cacheKey = ARTICLE_CACHE_PREFIX + id;
+        Optional<Object> cached = cacheService.get(cacheKey);
         
-        User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (cached.isPresent()) {
+            log.debug("Article {} found in cache", id);
+
+            Article cachedArticle;
+            if (cached.get() instanceof LinkedHashMap) {
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.registerModule(new JavaTimeModule());
+                cachedArticle = mapper.convertValue(cached.get(), Article.class);
+            } else {
+                cachedArticle = (Article) cached.get();
+            }
+            
+            // Still check permissions
+            if (canViewArticle(cachedArticle, currentUserId)) {
+                return cachedArticle;
+            }
+        }
         
+        // Get from database
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException("Article not found"));
         
-        // Check if user can view this article
-        if (currentUser.getRole() == Role.SUPER_ADMIN || 
-            currentUser.getRole() == Role.EDITOR) {
-            return article;
+        // Check permissions
+        if (!canViewArticle(article, currentUserId)) {
+            throw new UnauthorizedException("You don't have permission to view this article");
         }
         
-        if (currentUser.getRole() == Role.CONTRIBUTOR && 
-            article.getAuthorId().equals(currentUserId)) {
-            return article;
-        }
+        // Cache the article
+        cacheService.set(cacheKey, article, CACHE_TTL);
         
-        if (currentUser.getRole() == Role.VIEWER && article.isPublic()) {
-            return article;
-        }
-        
-        throw new UnauthorizedException("You don't have permission to view this article");
+        return article;
     }
     
     @Override
@@ -167,10 +198,14 @@ public class ArticleService implements ArticleUseCase {
         List<Article> myArticles = articleRepository.findByAuthorId(currentUserId);
         
         // Merge lists (avoiding duplicates)
-        myArticles.stream()
-            .filter(a -> !publicArticles.contains(a))
-            .forEach(publicArticles::add);
+        Set<Long> publicIds = publicArticles.stream()
+                .map(Article::getId)
+                .collect(Collectors.toSet());
         
+        myArticles.stream()
+                .filter(a -> !publicIds.contains(a.getId()))
+                .forEach(publicArticles::add);
+
         return publicArticles;
     }
     
@@ -179,4 +214,26 @@ public class ArticleService implements ArticleUseCase {
         log.debug("Getting my articles for user: {}", currentUserId);
         return articleRepository.findByAuthorId(currentUserId);
     }
+
+    private boolean canViewArticle(Article article, Long currentUserId) {
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        
+        if (currentUser.getRole() == Role.SUPER_ADMIN || 
+            currentUser.getRole() == Role.EDITOR) {
+            return true;
+        }
+        
+        if (currentUser.getRole() == Role.CONTRIBUTOR && 
+            article.getAuthorId().equals(currentUserId)) {
+            return true;
+        }
+        
+        if (currentUser.getRole() == Role.VIEWER && article.isPublic()) {
+            return true;
+        }
+        
+        return false;
+    }
+
 }
