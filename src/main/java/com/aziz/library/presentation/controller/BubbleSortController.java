@@ -102,50 +102,5 @@ private final BubbleSortService bubbleSortService;
             ApiResponse.success("Demo array sorted successfully", response)
         );
     }
-    
-    @PostMapping("/analyze")
-    @Operation(
-        summary = "Analyze sorting performance",
-        description = "Returns detailed performance analysis of the bubble sort algorithm. No authentication required."
-    )
-    public ResponseEntity<ApiResponse<Object>> analyzePerformance(
-            @Valid @RequestBody BubbleSortRequest request) {
-        
-        log.info("Performance analysis request for array of size: {}", request.getArray().length);
-        
-        int[] originalArray = Arrays.copyOf(request.getArray(), request.getArray().length);
-        
-        // Measure sorting time
-        long startTime = System.nanoTime();
-        int[] sortedArray = bubbleSortService.sort(request.getArray());
-        long endTime = System.nanoTime();
-        
-        long executionTimeNs = endTime - startTime;
-        double executionTimeMs = executionTimeNs / 1_000_000.0;
-        
-        // Calculate performance metrics
-        int n = request.getArray().length;
-        int worstCaseComparisons = (n * (n - 1)) / 2;
-        int bestCaseComparisons = n - 1;
-        
-        // Build analysis response
-        var analysis = new java.util.HashMap<String, Object>();
-        analysis.put("originalArray", originalArray);
-        analysis.put("sortedArray", sortedArray);
-        analysis.put("arraySize", n);
-        analysis.put("executionTimeMs", String.format("%.4f", executionTimeMs));
-        analysis.put("executionTimeNs", executionTimeNs);
-        analysis.put("algorithm", "Bubble Sort");
-        analysis.put("timeComplexity", "O(n²) worst/average, O(n) best");
-        analysis.put("spaceComplexity", "O(1)");
-        analysis.put("worstCaseComparisons", worstCaseComparisons);
-        analysis.put("bestCaseComparisons", bestCaseComparisons);
-        analysis.put("stable", true);
-        analysis.put("inPlace", true);
-        
-        return ResponseEntity.ok(
-            ApiResponse.success("Performance analysis completed", analysis)
-        );
-    }
 
 }
